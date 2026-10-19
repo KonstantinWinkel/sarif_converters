@@ -1,0 +1,18 @@
+{
+    "id": "",
+    "name": "",
+    "helpUri": "",
+    "fullDescription": {
+        "text": ""
+    },
+    "messageStrings": {
+        "default": {
+            "text": ""
+        }
+    },
+    "defaultConfiguration": {
+        "enabled": true,
+        "level": "",
+        "rank": -1
+    }
+}

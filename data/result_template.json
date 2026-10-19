@@ -1,0 +1,21 @@
+{
+          "ruleId": "C2001",
+          "message": {
+            "text":""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ""
+                },
+                "region": {
+                  "startLine": -1,
+                  "startColumn": -1,
+                  "endLine": -1,
+                  "endColumn": -1
+                }
+              }
+            }
+          ]
+        }
