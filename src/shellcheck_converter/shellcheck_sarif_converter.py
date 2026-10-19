@@ -144,4 +144,3 @@ class ShellCheckSarifConverter:
                 fix=message["fix"],
             ))
         self.json_content = messages
-

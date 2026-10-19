@@ -1,0 +1,7 @@
+src/__pycache__/
+src/core/__pycache__/
+src/pylint_converter/__pycache__/
+src/shellcheck_converter/__pycache__/
+tests/__pycache__/
+examples/*.json
+examples/*.sarif

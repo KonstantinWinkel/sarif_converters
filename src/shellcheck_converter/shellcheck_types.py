@@ -17,4 +17,3 @@ class ShellCheckMessage:
     code: int
     message: str
     fix: Optional[dict]
-

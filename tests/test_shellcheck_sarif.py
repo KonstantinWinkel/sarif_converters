@@ -1,6 +1,9 @@
 # Author: Konstantin M.J. Winkel, M.Sc.
 
-"""Functional and security regression tests for the ShellCheck JSON to SARIF converter."""
+
+"""
+Functional and security regression tests for the ShellCheck JSON to SARIF converter.
+"""
 
 import json
 import os
@@ -40,15 +43,22 @@ class ShellCheckConverterTestCase(unittest.TestCase):
     """Create an isolated filesystem for each ShellCheck converter test."""
 
     def setUp(self):
-        self.temporary_directory = tempfile.TemporaryDirectory()
+        """Sets up the test cases for the converter"""
+
+        # no with here, as this will be used later on too, outside of this function
+        self.temporary_directory = tempfile.TemporaryDirectory() # pylint: disable=consider-using-with
         self.root = Path(self.temporary_directory.name)
         self.input_path = self.root / "shellcheck.json"
         self.output_path = self.root / "shellcheck.sarif"
 
     def tearDown(self):
+        """Performs cleanup after the test cases"""
+
         self.temporary_directory.cleanup()
 
     def write_report(self, messages=None, path=None):
+        """Writes and safes the report after the tests"""
+
         target = path or self.input_path
         target.write_text(
             json.dumps(messages if messages is not None else [shellcheck_message()]),
@@ -57,6 +67,8 @@ class ShellCheckConverterTestCase(unittest.TestCase):
         return target
 
     def run_cli(self, *extra_arguments, input_path=None, output_path=None, timeout=10):
+        """Runs the converter in the CLI"""
+
         command = [
             sys.executable,
             "-m",
@@ -83,6 +95,8 @@ class FunctionalTests(ShellCheckConverterTestCase):
     """Test ShellCheck conversion through the public API and CLI."""
 
     def test_example_shape_is_converted(self):
+        """Tests to check if the example message is converted correctly"""
+
         self.write_report([
             shellcheck_message(),
             shellcheck_message(
@@ -113,6 +127,8 @@ class FunctionalTests(ShellCheckConverterTestCase):
         self.assertEqual("shell", run["artifacts"][0]["sourceLanguage"])
 
     def test_rules_and_artifacts_are_deduplicated_but_results_are_preserved(self):
+        """Test to check that rules and artifacts are not duplicated"""
+
         self.write_report([
             shellcheck_message(),
             shellcheck_message(line=10, endLine=10),
@@ -124,12 +140,16 @@ class FunctionalTests(ShellCheckConverterTestCase):
         self.assertEqual(2, len(run["results"]))
 
     def test_cli_selects_shellcheck_converter(self):
+        """Test to check that the CLI interface works correctly"""
+
         self.write_report()
         completed = self.run_cli()
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertTrue(self.output_path.is_file())
 
     def test_public_api_rejects_invalid_limits(self):
+        """Test to check that invalid limits are rejected"""
+
         self.write_report()
         for value in (0, -1, True, 1.5):
             with self.subTest(value=value):
@@ -143,6 +163,8 @@ class ExecutableResolutionTests(ShellCheckConverterTestCase):
     """Ensure version detection never executes a PATH program."""
 
     def test_version_lookup_does_not_execute_a_path_program(self):
+        """Test to check that version checking does not execute shellcheck"""
+
         self.write_report()
         fake_bin = self.root / "bin"
         fake_bin.mkdir()
@@ -170,7 +192,10 @@ class ExecutableResolutionTests(ShellCheckConverterTestCase):
         self.assertEqual("0.10.0", sarif["runs"][0]["tool"]["driver"]["version"])
 
     def test_missing_package_metadata_uses_safe_fallback(self):
+        """Test to check that if the package is missing, the correct fallback is selected"""
+
         from importlib.metadata import PackageNotFoundError  # pylint: disable=import-outside-toplevel
+
         args = SimpleNamespace(
             input="unused", output="unused", max_input_size=1, max_output_size=1,
             max_messages=1, max_rules=1, max_artifacts=1,
@@ -187,6 +212,8 @@ class OutputSafetyTests(ShellCheckConverterTestCase):
     """Test atomic output and input/output alias protections."""
 
     def test_existing_output_is_not_overwritten(self):
+        """Test to check that already existing output is not overwritten"""
+
         self.write_report()
         self.output_path.write_text("keep me", encoding="utf-8")
         with self.assertRaises(FileExistsError):
@@ -195,6 +222,8 @@ class OutputSafetyTests(ShellCheckConverterTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
     def test_symlink_output_is_refused_without_modifying_target(self):
+        """Test to check that symlinks as outputs are refuesed without changes"""
+
         self.write_report()
         target = self.root / "target.txt"
         target.write_text("keep me", encoding="utf-8")
@@ -205,12 +234,16 @@ class OutputSafetyTests(ShellCheckConverterTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
     def test_dangling_symlink_output_is_refused(self):
+        """Test to check that dangling symlinks as outputs are refused"""
+
         self.write_report()
         self.output_path.symlink_to(self.root / "missing-target")
         with self.assertRaises(FileExistsError):
             convert_shellcheck(self.input_path, self.output_path)
 
     def test_identical_input_and_output_are_rejected_before_modification(self):
+        """Test to check that identical input and output paths are rejected"""
+
         original = json.dumps([shellcheck_message()])
         self.input_path.write_text(original, encoding="utf-8")
         with self.assertRaises(ValueError):
@@ -219,6 +252,8 @@ class OutputSafetyTests(ShellCheckConverterTestCase):
 
     @unittest.skipUnless(hasattr(os, "link"), "hard links are unavailable")
     def test_hard_link_alias_is_rejected_before_modification(self):
+        """Test to check that hard-link aliasses are refuesed"""
+
         self.write_report()
         os.link(self.input_path, self.output_path)
         original = self.input_path.read_bytes()
@@ -228,6 +263,8 @@ class OutputSafetyTests(ShellCheckConverterTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
     def test_symlink_alias_to_input_is_rejected_before_modification(self):
+        """Test to check that symplink aliases to the input are rejected as output paths"""
+
         self.write_report()
         self.output_path.symlink_to(self.input_path)
         original = self.input_path.read_bytes()
@@ -240,6 +277,8 @@ class ResourceLimitTests(ShellCheckConverterTestCase):
     """Test configured input, output, message, rule, and artifact limits."""
 
     def test_input_size_limit_rejects_oversized_file_without_output(self):
+        """Test to check that oversized files are rejected"""
+
         self.input_path.write_bytes(b" " * (1024 * 1024 + 1))
         with self.assertRaises(ValueError):
             convert_shellcheck(
@@ -248,6 +287,8 @@ class ResourceLimitTests(ShellCheckConverterTestCase):
         self.assertFalse(self.output_path.exists())
 
     def test_message_rule_and_artifact_limits(self):
+        """Test to check message, rule and artifact limits"""
+
         cases = [
             ({"max_messages": 1}, [shellcheck_message(), shellcheck_message(line=9, endLine=9)]),
             ({"max_rules": 1}, [shellcheck_message(), shellcheck_message(code=2317)]),
@@ -269,6 +310,8 @@ class ResourceLimitTests(ShellCheckConverterTestCase):
                 self.assertFalse(output_path.exists())
 
     def test_output_size_limit_does_not_publish_partial_file(self):
+        """Test to check that outputfiles that are too large are not published as partial files"""
+
         self.write_report([shellcheck_message(message="x" * 700000)])
         with self.assertRaises(ValueError):
             convert_shellcheck(
@@ -282,6 +325,8 @@ class ValidationTests(ShellCheckConverterTestCase):
     """Test malformed ShellCheck reports and controlled CLI failures."""
 
     def test_malformed_reports_raise_controlled_validation_errors(self):
+        """Test that checks if a malformed report raises the correct errors (or any errors at all)"""
+
         valid = shellcheck_message()
         invalid_reports = [
             {},
@@ -308,6 +353,8 @@ class ValidationTests(ShellCheckConverterTestCase):
                 self.assertFalse(output_path.exists())
 
     def test_cli_reports_error_without_traceback_for_invalid_input(self):
+        """Test to check that there are no tracebacks in the CLI for errors"""
+
         self.input_path.write_text('[{"file":', encoding="utf-8")
         completed = self.run_cli()
         self.assertEqual(1, completed.returncode)
@@ -320,6 +367,8 @@ class SpecialFileAndParserRobustnessTests(ShellCheckConverterTestCase):
     """Test special-file rejection and parser failure handling."""
 
     def test_character_device_input_is_rejected_when_available(self):
+        """Test to check that devices as inputs are rejected"""
+
         device = Path("/dev/null")
         if not device.exists():
             self.skipTest("/dev/null is unavailable")
@@ -327,6 +376,8 @@ class SpecialFileAndParserRobustnessTests(ShellCheckConverterTestCase):
             load_json(str(device), 1024)
 
     def test_deep_json_returns_controlled_cli_error_without_traceback(self):
+        """Test to check that deeply nested jsons are rejected with the appropriate error message"""
+
         depth = 2000
         self.input_path.write_text(("[" * depth) + ( "]" * depth), encoding="utf-8")
         completed = self.run_cli(timeout=10)
@@ -336,6 +387,8 @@ class SpecialFileAndParserRobustnessTests(ShellCheckConverterTestCase):
         self.assertFalse(self.output_path.exists())
 
     def test_size_decision_uses_open_descriptor_status(self):
+        """Test to check that size decisions uses open descriptor status"""
+
         self.write_report()
         real_fstat = os.fstat
 

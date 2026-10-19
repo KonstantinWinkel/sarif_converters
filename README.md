@@ -1,6 +1,6 @@
 Author: Konstantin M.J. Winkel, M.Sc.
 
-#sarif_converters
+# sarif_converters
 
 This projects presents a simple and easy to use set python implementation of different converter specific formats to SARIF. Currently supported analyzers are:
 
@@ -60,6 +60,15 @@ from sarif_converters import def convert_pylint, convert_shellcheck
 The supplied `convert_*` methods do the conversion. The arguments of the methods are identical to the CLI argmuments.
 
 ## Test Suite
+
+This tool provides a test suite that allows all converters to be tested either together or individually.
+
+```bash
+
+python3 -m tests                        # test all suites
+python3 -m tests --converter pylint     # test only the pylint suite
+python3 -m tests --converter shellcheck # test only the shellcheck suite
+```
 
 ## Further information
 - [The SARIF Standard](https://sarifweb.azurewebsites.net/)

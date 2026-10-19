@@ -51,4 +51,3 @@ def validate_message(message: object, message_index: int) -> None:
         raise ValueError(f"{location}.endColumn must not be before column on the same line")
     if message["fix"] is not None and not isinstance(message["fix"], dict):
         raise ValueError(f"{location}.fix must be an object or null")
-
