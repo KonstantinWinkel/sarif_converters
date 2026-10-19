@@ -29,9 +29,9 @@ Many CLI options are available, see the table below.
 | -i     | --input           | Path   | Yes      | Path to the input json file |
 |        | --max-artifacts   | Int    | No       | The maximum number of unique artifacts to process |
 |        | --max-input-size  | Int    | No       | The maximum size of the input json file, in megabyte |
-|        | --max-messages    | Int    | No       | The maximum number of unique Pylint rules to process |
+|        | --max-messages    | Int    | No       | The maximum number of unique rules to process |
 |        | --max-output-size | Int    | No       | The maximum size of the output sarif file, in megabyte |
-|        | --max-rules       | Int    | No       | The maximum number of Pylint messages to process |
+|        | --max-rules       | Int    | No       | The maximum number of messages to process |
 | -o     | --output          | Path   | Yes      | Path to the output sarif file |
 | -v     | --verbose         |        | No       | Increase verbosity (-v, -vv, -vvv) |
 
@@ -54,7 +54,7 @@ python3 -m src.main -i examples/shellcheck_output.json -o examples/shellcheck_ou
 This tool can also be directly integrated into existing python projects as a module. Simply clone it into your project and import it using the following code:
 
 ```python
-from sarif_converters import def convert_pylint, convert_shellcheck
+from sarif_converters import convert_pylint, convert_shellcheck
 ```
 
 The supplied `convert_*` methods do the conversion. The arguments of the methods are identical to the CLI argmuments.
@@ -64,7 +64,6 @@ The supplied `convert_*` methods do the conversion. The arguments of the methods
 This tool provides a test suite that allows all converters to be tested either together or individually.
 
 ```bash
-
 python3 -m tests                        # test all suites
 python3 -m tests --converter pylint     # test only the pylint suite
 python3 -m tests --converter shellcheck # test only the shellcheck suite
