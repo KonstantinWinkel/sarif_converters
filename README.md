@@ -62,7 +62,7 @@ python3 -m src.main -i examples/clippy_output.json -o examples/clippy_output.sar
 This tool can also be directly integrated into existing python projects as a module. Simply clone it into your project and import it using the following code:
 
 ```python
-from sarif_converters import convert_pylint, convert_shellcheck
+from sarif_converters import convert_pylint, convert_shellcheck, convert_clippy
 ```
 
 The supplied `convert_*` methods do the conversion. The arguments of the methods are identical to the CLI argmuments.
@@ -82,5 +82,5 @@ python3 -m tests --converter clippy     # test only the clippy suite
 - [The SARIF Standard](https://sarifweb.azurewebsites.net/)
 - [Pylint](https://www.pylint.org/)
 - [Shellcheck](https://www.shellcheck.net)
-- [Clipps](https://doc.rust-lang.org/clippy/index.html)
+- [Clippy](https://doc.rust-lang.org/clippy/index.html)
 

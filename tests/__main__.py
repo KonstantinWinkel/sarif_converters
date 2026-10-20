@@ -1,10 +1,13 @@
 # Author: Konstantin M.J. Winkel, M.Sc.
+
 """Command-line entry point for the SARIF converters test suite."""
+
 import argparse
 import sys
 import unittest
 
 from . import test_clippy_sarif, test_pylint_sarif, test_shellcheck_sarif
+from .platform import build_platform_suite
 
 
 def parse_arguments(arguments=None) -> argparse.Namespace:
@@ -33,9 +36,8 @@ def build_suite(converter: str | None = None) -> unittest.TestSuite:
         "shellcheck": unittest.defaultTestLoader.loadTestsFromModule(test_shellcheck_sarif),
         "clippy": unittest.defaultTestLoader.loadTestsFromModule(test_clippy_sarif),
     }
-    if converter is not None:
-        return suites[converter]
-    return unittest.TestSuite(suites.values())
+    analyzer_suite = suites[converter] if converter is not None else unittest.TestSuite(suites.values())
+    return unittest.TestSuite([build_platform_suite(converter), analyzer_suite])
 
 
 def main(arguments=None) -> int:
