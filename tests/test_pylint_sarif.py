@@ -14,7 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from src import convert
+from src import convert_pylint
 from src.core.file_io import load_json
 from src.pylint_converter.pylint_sarif_converter import PylintSarifConverter
 
@@ -103,7 +103,7 @@ class FunctionalTests(ConverterTestCase):
 
         self.write_report()
         with mock.patch("src.pylint_converter.pylint_sarif_converter.version", return_value="3.2.1"):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
 
         sarif = json.loads(self.output_path.read_text(encoding="utf-8"))
         run = sarif["runs"][0]
@@ -121,7 +121,7 @@ class FunctionalTests(ConverterTestCase):
             pylint_message(line=3),
             pylint_message(line=9, endLine=10, message="A second occurrence"),
         ])
-        convert(self.input_path, self.output_path)
+        convert_pylint(self.input_path, self.output_path)
         run = json.loads(self.output_path.read_text(encoding="utf-8"))["runs"][0]
         self.assertEqual(1, len(run["tool"]["driver"]["rules"]))
         self.assertEqual(1, len(run["artifacts"]))
@@ -131,7 +131,7 @@ class FunctionalTests(ConverterTestCase):
         """Test to check that end locations are omitted"""
 
         self.write_report([pylint_message(endLine=None, endColumn=None, column=0)])
-        convert(self.input_path, self.output_path)
+        convert_pylint(self.input_path, self.output_path)
         region = json.loads(self.output_path.read_text(encoding="utf-8"))["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["region"]
         self.assertNotIn("startColumn", region)
         self.assertNotIn("endLine", region)
@@ -152,7 +152,7 @@ class FunctionalTests(ConverterTestCase):
         for value in (0, -1, True, 1.5):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
-                    convert(self.input_path, self.output_path, max_messages=value)
+                    convert_pylint(self.input_path, self.output_path, max_messages=value)
 
 
 class ExecutableResolutionTests(ConverterTestCase):
@@ -205,7 +205,7 @@ class OutputSafetyTests(ConverterTestCase):
         self.write_report()
         self.output_path.write_text("keep me", encoding="utf-8")
         with self.assertRaises(FileExistsError):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
         self.assertEqual("keep me", self.output_path.read_text(encoding="utf-8"))
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
@@ -217,7 +217,7 @@ class OutputSafetyTests(ConverterTestCase):
         target.write_text("keep me", encoding="utf-8")
         self.output_path.symlink_to(target)
         with self.assertRaises(FileExistsError):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
         self.assertEqual("keep me", target.read_text(encoding="utf-8"))
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
@@ -227,7 +227,7 @@ class OutputSafetyTests(ConverterTestCase):
         self.write_report()
         self.output_path.symlink_to(self.root / "missing-target")
         with self.assertRaises(FileExistsError):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
 
     def test_identical_input_and_output_are_rejected_before_modification(self):
         """Test to check that identical input and output paths are rejected"""
@@ -235,7 +235,7 @@ class OutputSafetyTests(ConverterTestCase):
         original = json.dumps({"messages": [pylint_message()]})
         self.input_path.write_text(original, encoding="utf-8")
         with self.assertRaises(ValueError):
-            convert(self.input_path, self.input_path)
+            convert_pylint(self.input_path, self.input_path)
         self.assertEqual(original, self.input_path.read_text(encoding="utf-8"))
 
     @unittest.skipUnless(hasattr(os, "link"), "hard links are unavailable")
@@ -246,7 +246,7 @@ class OutputSafetyTests(ConverterTestCase):
         os.link(self.input_path, self.output_path)
         original = self.input_path.read_bytes()
         with self.assertRaises(ValueError):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
         self.assertEqual(original, self.input_path.read_bytes())
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symbolic links are unavailable")
@@ -257,7 +257,7 @@ class OutputSafetyTests(ConverterTestCase):
         self.output_path.symlink_to(self.input_path)
         original = self.input_path.read_bytes()
         with self.assertRaises(ValueError):
-            convert(self.input_path, self.output_path)
+            convert_pylint(self.input_path, self.output_path)
         self.assertEqual(original, self.input_path.read_bytes())
 
 
@@ -269,7 +269,7 @@ class ResourceLimitTests(ConverterTestCase):
 
         self.input_path.write_bytes(b" " * (1024 * 1024 + 1))
         with self.assertRaises(ValueError):
-            convert(self.input_path, self.output_path, max_input_size_mib=1)
+            convert_pylint(self.input_path, self.output_path, max_input_size_mib=1)
         self.assertFalse(self.output_path.exists())
 
     def test_message_rule_and_artifact_limits(self):
@@ -292,7 +292,7 @@ class ResourceLimitTests(ConverterTestCase):
                 }
                 kwargs.update(limits)
                 with self.assertRaises(ValueError):
-                    convert(input_path, output_path, **kwargs)
+                    convert_pylint(input_path, output_path, **kwargs)
                 self.assertFalse(output_path.exists())
 
     def test_output_size_limit_does_not_publish_partial_file(self):
@@ -301,7 +301,7 @@ class ResourceLimitTests(ConverterTestCase):
         large_text = "x" * 700000
         self.write_report([pylint_message(message=large_text)])
         with self.assertRaises(ValueError):
-            convert(
+            convert_pylint(
                 self.input_path, self.output_path,
                 max_input_size_mib=2, max_output_size_mib=1,
             )
@@ -337,7 +337,7 @@ class ValidationTests(ConverterTestCase):
                 output_path = self.root / f"invalid-{index}.sarif"
                 input_path.write_text(json.dumps(report), encoding="utf-8")
                 with self.assertRaises((TypeError, ValueError)):
-                    convert(input_path, output_path)
+                    convert_pylint(input_path, output_path)
                 self.assertFalse(output_path.exists())
 
     def test_cli_reports_error_without_traceback_for_invalid_input(self):

@@ -1,12 +1,14 @@
 # Author: Konstantin M.J. Winkel, M.Sc.
 
-"""This file contains the main entry point for the pylint-to-sarif converter."""
+"""
+This file contains the main entry point for the SARIF converters.
+"""
 
 import json
 import logging
 import sys
 
-from . import convert_pylint, convert_shellcheck
+from . import convert_pylint, convert_shellcheck, convert_clippy
 from .core.cli import configure_logging, parse_arguments
 
 
@@ -23,21 +25,14 @@ def main() -> int:
             "max_rules": args.max_rules,
             "max_artifacts": args.max_artifacts,
         }
-
-        if args.converter == "pylint":
-            convert_pylint(args.input, args.output, **conversion_arguments)
-
-        if args.converter == "shellcheck":
-            convert_shellcheck(args.input, args.output, **conversion_arguments)
-
-    except (
-            FileExistsError,
-            json.JSONDecodeError,
-            MemoryError,
-            OSError,
-            RecursionError,
-            TypeError,
-            ValueError) as exc:
+        converters = {
+            "pylint": convert_pylint,
+            "shellcheck": convert_shellcheck,
+            "clippy": convert_clippy,
+        }
+        converters[args.converter](args.input, args.output, **conversion_arguments)
+    except (FileExistsError, json.JSONDecodeError, MemoryError, OSError,
+            RecursionError, TypeError, ValueError) as exc:
         logging.getLogger(__name__).error("Conversion failed: %s", exc)
         return 1
     return 0

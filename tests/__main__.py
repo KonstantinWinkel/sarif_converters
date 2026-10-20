@@ -4,7 +4,7 @@ import argparse
 import sys
 import unittest
 
-from . import test_pylint_sarif, test_shellcheck_sarif
+from . import test_clippy_sarif, test_pylint_sarif, test_shellcheck_sarif
 
 
 def parse_arguments(arguments=None) -> argparse.Namespace:
@@ -15,7 +15,7 @@ def parse_arguments(arguments=None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--converter",
-        choices=["pylint", "shellcheck"],
+        choices=["pylint", "shellcheck", "clippy"],
         help="Only run the tests for the selected converter.",
     )
     parser.add_argument(
@@ -31,6 +31,7 @@ def build_suite(converter: str | None = None) -> unittest.TestSuite:
     suites = {
         "pylint": unittest.defaultTestLoader.loadTestsFromModule(test_pylint_sarif),
         "shellcheck": unittest.defaultTestLoader.loadTestsFromModule(test_shellcheck_sarif),
+        "clippy": unittest.defaultTestLoader.loadTestsFromModule(test_clippy_sarif),
     }
     if converter is not None:
         return suites[converter]

@@ -28,7 +28,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", action="count", default=0,
                         help="Increase verbosity (-v, -vv, -vvv)")
-    parser.add_argument("-c", "--converter", choices=["pylint", "shellcheck"], required=True,
+    parser.add_argument("-c", "--converter", choices=["pylint", "shellcheck", "clippy"], required=True,
                         help="The converter that was used to invoke the original report.")
     parser.add_argument("-i", "--input", type=Path, required=True,
                         help="Path to the input json file")

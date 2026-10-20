@@ -50,9 +50,8 @@ def validate_input_output_paths(input_path: str, output_path: str) -> None:
         raise ValueError("Input and output paths must refer to different files")
 
 
-def load_json(path: str, maximum_bytes: int) -> object:
-    """Load bounded JSON content from a regular file."""
-
+def _read_regular_file(path: str, maximum_bytes: int) -> bytes:
+    """Read bounded content from a regular file."""
     open_flags = os.O_RDONLY
     if hasattr(os, "O_NONBLOCK"):
         open_flags |= os.O_NONBLOCK
@@ -74,8 +73,32 @@ def load_json(path: str, maximum_bytes: int) -> object:
 
     if len(content) > maximum_bytes:
         raise ValueError(f"Input file exceeds the {maximum_bytes}-byte size limit")
+    return content
 
-    return json.loads(content.decode("utf-8"))
+
+def load_json(path: str, maximum_bytes: int) -> object:
+    """Load bounded JSON content from a regular file."""
+
+    return json.loads(_read_regular_file(path, maximum_bytes).decode("utf-8"))
+
+
+def load_json_lines(path: str, maximum_bytes: int) -> list:
+    """Load bounded newline-delimited JSON content from a regular file."""
+
+    content = _read_regular_file(path, maximum_bytes).decode("utf-8")
+    records = []
+    for line_number, line in enumerate(content.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError as exc:
+            raise json.JSONDecodeError(
+                f"Invalid JSON record on line {line_number}: {exc.msg}",
+                exc.doc,
+                exc.pos,
+            ) from exc
+    return records
 
 
 def load_template(path: str) -> dict:

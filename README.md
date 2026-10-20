@@ -6,6 +6,7 @@ This projects presents a simple and easy to use set python implementation of dif
 
 - Pylint (json2 format) - a replacement for [this reporisory](https://github.com/GrammaTech/pylint-sarif).
 - Shellcheck (json format)
+- Clippy (json format)
 
 ## Setup
 To clone and setup this repository run the following commands.
@@ -25,7 +26,7 @@ Many CLI options are available, see the table below.
 
 | Option | Long Option       | Type   | Required | Description |
 | ------ | -----------       | ----   | -------- | ----------- |
-| -c     | --converter       | String | Yes      | Select the converter to use, either pylint or shellcheck |
+| -c     | --converter       | String | Yes      | Select the converter to use, either pylint, shellcheck or clippy |
 | -i     | --input           | Path   | Yes      | Path to the input json file |
 |        | --max-artifacts   | Int    | No       | The maximum number of unique artifacts to process |
 |        | --max-input-size  | Int    | No       | The maximum size of the input json file, in megabyte |
@@ -49,6 +50,13 @@ shellcheck --format=json examples/bad_shell_example.sh > examples/shellcheck_out
 python3 -m src.main -i examples/shellcheck_output.json -o examples/shellcheck_output.sarif -c shellcheck
 ```
 
+### Clippy Example
+```bash
+cd examples/bad_rust_example
+cargo clippy --message-format=json > ../clippy_output.json
+cd -
+python3 -m src.main -i examples/clippy_output.json -o examples/clippy_output.sarif -c clippy
+```
 
 ## Example Usage as a Python Module
 This tool can also be directly integrated into existing python projects as a module. Simply clone it into your project and import it using the following code:
@@ -67,10 +75,12 @@ This tool provides a test suite that allows all converters to be tested either t
 python3 -m tests                        # test all suites
 python3 -m tests --converter pylint     # test only the pylint suite
 python3 -m tests --converter shellcheck # test only the shellcheck suite
+python3 -m tests --converter clippy     # test only the clippy suite
 ```
 
 ## Further information
 - [The SARIF Standard](https://sarifweb.azurewebsites.net/)
 - [Pylint](https://www.pylint.org/)
 - [Shellcheck](https://www.shellcheck.net)
+- [Clipps](https://doc.rust-lang.org/clippy/index.html)
 

@@ -11,6 +11,8 @@ from .core.cli import (
     DEFAULT_MAX_OUTPUT_SIZE_MIB,
     DEFAULT_MAX_RULES,
 )
+
+from .clippy_converter.clippy_sarif_converter import ClippySarifConverter
 from .pylint_converter.pylint_sarif_converter import PylintSarifConverter
 from .shellcheck_converter.shellcheck_sarif_converter import ShellCheckSarifConverter
 
@@ -36,53 +38,57 @@ def _converter_arguments(input_path: PathValue, output_path: PathValue, limits: 
     )
 
 
-def convert_pylint(
-        input_path: PathValue,
-        output_path: PathValue,
-        *,
-        max_input_size_mib: int = DEFAULT_MAX_INPUT_SIZE_MIB,
-        max_output_size_mib: int = DEFAULT_MAX_OUTPUT_SIZE_MIB,
-        max_messages: int = DEFAULT_MAX_MESSAGES,
-        max_rules: int = DEFAULT_MAX_RULES,
-        max_artifacts: int = DEFAULT_MAX_ARTIFACTS) -> None:
+def _run_converter(converter, input_path, output_path, max_input_size_mib,
+                   max_output_size_mib, max_messages, max_rules, max_artifacts) -> None:
+    limits = {
+        "max_input_size_mib": max_input_size_mib,
+        "max_output_size_mib": max_output_size_mib,
+        "max_messages": max_messages,
+        "max_rules": max_rules,
+        "max_artifacts": max_artifacts,
+    }
+    converter(_converter_arguments(input_path, output_path, limits)).run()
+
+
+def convert_pylint(input_path: PathValue, output_path: PathValue, *,
+                   max_input_size_mib: int = DEFAULT_MAX_INPUT_SIZE_MIB,
+                   max_output_size_mib: int = DEFAULT_MAX_OUTPUT_SIZE_MIB,
+                   max_messages: int = DEFAULT_MAX_MESSAGES,
+                   max_rules: int = DEFAULT_MAX_RULES,
+                   max_artifacts: int = DEFAULT_MAX_ARTIFACTS) -> None:
     """Convert a Pylint JSON2 report to a SARIF file."""
-    limits = {
-        "max_input_size_mib": max_input_size_mib,
-        "max_output_size_mib": max_output_size_mib,
-        "max_messages": max_messages,
-        "max_rules": max_rules,
-        "max_artifacts": max_artifacts,
-    }
-    PylintSarifConverter(_converter_arguments(input_path, output_path, limits)).run()
+
+    _run_converter(PylintSarifConverter, input_path, output_path, max_input_size_mib,
+                   max_output_size_mib, max_messages, max_rules, max_artifacts)
 
 
-def convert_shellcheck(
-        input_path: PathValue,
-        output_path: PathValue,
-        *,
-        max_input_size_mib: int = DEFAULT_MAX_INPUT_SIZE_MIB,
-        max_output_size_mib: int = DEFAULT_MAX_OUTPUT_SIZE_MIB,
-        max_messages: int = DEFAULT_MAX_MESSAGES,
-        max_rules: int = DEFAULT_MAX_RULES,
-        max_artifacts: int = DEFAULT_MAX_ARTIFACTS) -> None:
+def convert_shellcheck(input_path: PathValue, output_path: PathValue, *,
+                       max_input_size_mib: int = DEFAULT_MAX_INPUT_SIZE_MIB,
+                       max_output_size_mib: int = DEFAULT_MAX_OUTPUT_SIZE_MIB,
+                       max_messages: int = DEFAULT_MAX_MESSAGES,
+                       max_rules: int = DEFAULT_MAX_RULES,
+                       max_artifacts: int = DEFAULT_MAX_ARTIFACTS) -> None:
     """Convert a ShellCheck JSON report to a SARIF file."""
-    limits = {
-        "max_input_size_mib": max_input_size_mib,
-        "max_output_size_mib": max_output_size_mib,
-        "max_messages": max_messages,
-        "max_rules": max_rules,
-        "max_artifacts": max_artifacts,
-    }
-    ShellCheckSarifConverter(_converter_arguments(input_path, output_path, limits)).run()
 
+    _run_converter(ShellCheckSarifConverter, input_path, output_path, max_input_size_mib,
+                   max_output_size_mib, max_messages, max_rules, max_artifacts)
 
-# Preserve the original module API for existing Pylint users.
-convert = convert_pylint
+def convert_clippy(input_path: PathValue, output_path: PathValue, *,
+                   max_input_size_mib: int = DEFAULT_MAX_INPUT_SIZE_MIB,
+                   max_output_size_mib: int = DEFAULT_MAX_OUTPUT_SIZE_MIB,
+                   max_messages: int = DEFAULT_MAX_MESSAGES,
+                   max_rules: int = DEFAULT_MAX_RULES,
+                   max_artifacts: int = DEFAULT_MAX_ARTIFACTS) -> None:
+    """Convert Cargo Clippy JSON-lines output to a SARIF file."""
+
+    _run_converter(ClippySarifConverter, input_path, output_path, max_input_size_mib,
+                   max_output_size_mib, max_messages, max_rules, max_artifacts)
 
 __all__ = [
-    "convert",
     "convert_pylint",
     "convert_shellcheck",
+    "convert_clippy",
     "PylintSarifConverter",
     "ShellCheckSarifConverter",
+    "ClippySarifConverter"
 ]
