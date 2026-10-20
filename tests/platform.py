@@ -57,22 +57,28 @@ class ConverterAdapter:
     def valid_records(self):
         """Returns a valid record for the given converter"""
 
-        if self.name == "pylint": return {"messages":[_pylint_message()]}
-        if self.name == "shellcheck": return [_shellcheck_message()]
+        if self.name == "pylint":
+            return {"messages":[_pylint_message()]}
+        if self.name == "shellcheck":
+            return [_shellcheck_message()]
         return [_clippy_record()]
 
     def write_valid(self, path):
         """Writes a valid record to a given path"""
 
         records = self.valid_records()
-        if self.name == "pylint": path.write_text(json.dumps(records), encoding="utf-8")
-        else: self.write(path, records)
+        if self.name == "pylint":
+            path.write_text(json.dumps(records), encoding="utf-8")
+        else:
+            self.write(path, records)
 
     def duplicate_records(self):
         """Creates duplicated records for the given converter"""
 
-        if self.name == "pylint": return {"messages":[_pylint_message(), _pylint_message(line=9,endLine=10)]}
-        if self.name == "shellcheck": return [_shellcheck_message(), _shellcheck_message(line=10,endLine=10)]
+        if self.name == "pylint":
+            return {"messages":[_pylint_message(), _pylint_message(line=9,endLine=10)]}
+        if self.name == "shellcheck":
+            return [_shellcheck_message(), _shellcheck_message(line=10,endLine=10)]
         return [_clippy_record(), _clippy_record(message="another occurrence")]
 
     def limit_records(self, kind):
@@ -84,21 +90,27 @@ class ConverterAdapter:
         if self.name == "shellcheck":
             return {"messages":[_shellcheck_message(),_shellcheck_message(line=9,endLine=9)],"rules":[_shellcheck_message(),_shellcheck_message(code=2317)],"artifacts":[_shellcheck_message(),_shellcheck_message(file="other.sh")]}[kind]
         second_rule=_clippy_record(code={"code":"clippy::needless_return","explanation":None})
-        second_artifact=_clippy_record(); second_artifact["message"]["spans"][0]["file_name"]="src/lib.rs"
+        second_artifact=_clippy_record()
+        second_artifact["message"]["spans"][0]["file_name"]="src/lib.rs"
         return {"messages":[_clippy_record(),_clippy_record()],"rules":[_clippy_record(),second_rule],"artifacts":[_clippy_record(),second_artifact]}[kind]
 
     def write_records(self, path, records):
         """Writes the records to a given path, depending on which converter is used"""
 
-        if self.name == "pylint": path.write_text(json.dumps(records), encoding="utf-8")
-        else: self.write(path, records)
+        if self.name == "pylint":
+            path.write_text(json.dumps(records), encoding="utf-8")
+        else:
+            self.write(path, records)
 
     def write_large(self, path):
         """Writes a large record, depending on the selected converter"""
 
-        if self.name == "pylint": self.write_records(path,{"messages":[_pylint_message(message="x"*700000)]})
-        elif self.name == "shellcheck": self.write_records(path,[_shellcheck_message(message="x"*700000)])
-        else: self.write_records(path,[_clippy_record(message="x"*700000)])
+        if self.name == "pylint":
+            self.write_records(path,{"messages":[_pylint_message(message="x"*700000)]})
+        elif self.name == "shellcheck":
+            self.write_records(path,[_shellcheck_message(message="x"*700000)])
+        else:
+            self.write_records(path,[_clippy_record(message="x"*700000)])
 
     def invalid_text(self):
         """Creates invalid Text for pylint"""
@@ -109,8 +121,9 @@ class ConverterAdapter:
         """Creates a deeply nested json"""
 
         depth=2000
-        if self.name == "pylint": return '{"messages":' + '['*depth + ']'*depth + '}'
-        return ('['*depth + ']'*depth + ('\n' if self.line_format else ''))
+        if self.name == "pylint":
+            return '{"messages":' + '['*depth + ']'*depth + '}'
+        return '['*depth + ']'*depth + ('\n' if self.line_format else '')
 
 
 ADAPTERS = {

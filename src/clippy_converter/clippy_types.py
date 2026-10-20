@@ -2,6 +2,8 @@
 
 """Type definitions for Clippy JSON output."""
 
+# pylint: disable=duplicate-code
+
 from dataclasses import dataclass
 
 @dataclass(frozen=True)

@@ -2,6 +2,8 @@
 
 """Clippy JSON-lines to SARIF conversion."""
 
+# pylint: disable=duplicate-code
+
 from copy import deepcopy
 
 from ..core.file_io import load_json_lines, load_template, save_json_atomically, validate_input_output_paths

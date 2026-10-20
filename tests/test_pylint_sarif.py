@@ -4,6 +4,8 @@
 Functional and security regression tests for the Pylint JSON2 to SARIF converter.
 """
 
+# pylint: disable=duplicate-code
+
 import json
 import os
 import subprocess
@@ -11,12 +13,12 @@ import sys
 import tempfile
 import unittest
 
+from importlib.metadata import PackageNotFoundError
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
 from src import convert_pylint
-from src.core.file_io import load_json
 from src.pylint_converter.pylint_sarif_converter import PylintSarifConverter
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +36,8 @@ class ConverterTestCase(unittest.TestCase):
     def setUp(self):
         """Sets up the test cases for the converter"""
 
-        self.temporary_directory = tempfile.TemporaryDirectory()
+        # no with here, as this will be used later on too, outside of this function
+        self.temporary_directory = tempfile.TemporaryDirectory() # pylint: disable=consider-using-with
         self.root = Path(self.temporary_directory.name)
         self.input_path = self.root / 'input.json'
         self.output_path = self.root / 'output.sarif'
@@ -108,7 +111,6 @@ class ExecutableResolutionTests(ConverterTestCase):
     def test_missing_package_metadata_uses_safe_fallback(self):
         """Test to check that if the package is missing, the correct fallback is selected"""
 
-        from importlib.metadata import PackageNotFoundError
         args = SimpleNamespace(input='unused', output='unused', max_input_size=1, max_output_size=1, max_messages=1, max_rules=1, max_artifacts=1)
         with mock.patch('src.pylint_converter.pylint_sarif_converter.version', side_effect=PackageNotFoundError):
             self.assertEqual('unknown', PylintSarifConverter(args).get_pylint_version())

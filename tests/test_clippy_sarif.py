@@ -2,18 +2,17 @@
 
 """Functional and security regression tests for the Clippy JSON-lines to SARIF converter."""
 
+# pylint: disable=duplicate-code
+
 import json
-import os
 import subprocess
 import sys
 import tempfile
 import unittest
 
 from pathlib import Path
-from unittest import mock
 
 from src import convert_clippy
-from src.core.file_io import load_json_lines
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -35,7 +34,8 @@ class ClippyConverterTestCase(unittest.TestCase):
     def setUp(self):
         """Sets up the test cases for the converter"""
 
-        self.temporary_directory = tempfile.TemporaryDirectory()
+        # no with here, as this will be used later on too, outside of this function
+        self.temporary_directory = tempfile.TemporaryDirectory() # pylint: disable=consider-using-with
         self.root = Path(self.temporary_directory.name)
         self.input_path = self.root / 'clippy.json'
         self.output_path = self.root / 'clippy.sarif'

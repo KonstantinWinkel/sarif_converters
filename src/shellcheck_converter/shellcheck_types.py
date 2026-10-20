@@ -1,8 +1,11 @@
 # Author: Konstantin M.J. Winkel, M.Sc.
+
 """Type definitions for ShellCheck JSON output."""
+
+# pylint: disable=duplicate-code
+
 from dataclasses import dataclass
 from typing import Optional
-
 
 @dataclass(frozen=True)
 class ShellCheckMessage:

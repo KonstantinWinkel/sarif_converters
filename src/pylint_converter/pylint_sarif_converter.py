@@ -2,6 +2,8 @@
 
 """This File contains the class definitions for the pylint converter"""
 
+# pylint: disable=duplicate-code
+
 import logging
 from copy import deepcopy
 from importlib.metadata import PackageNotFoundError, version

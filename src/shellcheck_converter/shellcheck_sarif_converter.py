@@ -2,6 +2,8 @@
 
 """ShellCheck JSON to SARIF conversion."""
 
+# pylint: disable=duplicate-code
+
 import logging
 from copy import deepcopy
 from importlib.metadata import PackageNotFoundError, version

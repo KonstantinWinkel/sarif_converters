@@ -1,4 +1,5 @@
 # Author: Konstantin M.J. Winkel, M.Sc.
+
 """Validation rules for ShellCheck JSON messages."""
 
 MAX_STRING_LENGTH = 1_000_000
